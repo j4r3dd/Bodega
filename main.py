@@ -772,29 +772,58 @@ class ReciboAppMejorado:
 
         # Tabla de productos
         pdf.set_font("DejaVu", "B", 10)
-        pdf.cell(60, 10, "Producto", 1)
-        pdf.cell(30, 10, "Cantidad", 1)
-        pdf.cell(30, 10, "Unidad", 1)
-        pdf.cell(30, 10, "Precio/Unidad", 1)
-        pdf.cell(40, 10, "Subtotal", 1)
+        # Ajustar anchos de columna
+        pdf.cell(80, 10, "Producto", 1)  # Más ancho para nombres largos
+        pdf.cell(25, 10, "Cantidad", 1)
+        pdf.cell(25, 10, "Unidad", 1)
+        pdf.cell(30, 10, "Precio Unitario", 1)
+        pdf.cell(30, 10, "Subtotal Bruto", 1)
         pdf.ln()
 
         pdf.set_font("DejaVu", size=10)
-        for nombre, cantidad, unidad, precio_unitario, total in productos_finales:
+        subtotal_bruto = Decimal('0')
+    
+        for nombre, cantidad, unidad, precio_unitario, subtotal in productos_finales:
+            # Calcular subtotal bruto (sin descuento)
+            precio_base = Decimal(str(precio_unitario)) / (1 - self.descuento_cliente/Decimal('100'))
+            subtotal_bruto_producto = precio_base * Decimal(str(cantidad))
+            subtotal_bruto += subtotal_bruto_producto
+            
             # Limpiar caracteres especiales para PDF
             nombre_limpio = nombre.replace('🔒', '[ESPECIAL]').encode('latin1', 'replace').decode('latin1')
-            pdf.cell(60, 10, nombre_limpio, 1)
-            pdf.cell(30, 10, f"{cantidad:.2f}", 1)
-            pdf.cell(30, 10, f"{unidad}", 1)
-            pdf.cell(30, 10, f"${precio_unitario:.2f}", 1)
-            pdf.cell(40, 10, f"${total:.2f}", 1)
+            
+            pdf.cell(80, 10, nombre_limpio, 1)
+            pdf.cell(25, 10, f"{cantidad:.2f}", 1)
+            pdf.cell(25, 10, f"{unidad}", 1)
+            pdf.cell(30, 10, f"${float(precio_base):.2f}", 1)
+            pdf.cell(30, 10, f"${float(subtotal_bruto_producto):.2f}", 1)
             pdf.ln()
 
-        # Total
+        # Totales
         pdf.ln(5)
         pdf.set_font("DejaVu", "B", 12)
-        pdf.cell(150, 10, "TOTAL", 1)
-        pdf.cell(40, 10, f"${total_general:.2f}", 1)
+
+        # Subtotal Bruto
+        pdf.cell(140, 10, "Subtotal Bruto", 1)
+        pdf.cell(50, 10, f"${float(subtotal_bruto):.2f}", 1, align="R")
+        pdf.ln()
+
+        # Descuento
+        if self.descuento_cliente > 0:
+            monto_descuento = subtotal_bruto * (self.descuento_cliente / Decimal('100'))
+            pdf.cell(140, 10, f"Descuento ({float(self.descuento_cliente)}%)", 1)
+            pdf.cell(50, 10, f"-${float(monto_descuento):.2f}", 1, align="R")
+            pdf.ln()
+        else:
+            monto_descuento = Decimal('0')
+            pdf.cell(140, 10, "Descuento", 1)
+            pdf.cell(50, 10, "$0.00", 1, align="R")
+            pdf.ln()
+            
+        # Total
+        total = subtotal_bruto - monto_descuento
+        pdf.cell(140, 10, "TOTAL", 1)
+        pdf.cell(50, 10, f"${float(total):.2f}", 1, align="R")
 
         pdf.output(nombre_archivo)
         messagebox.showinfo("Éxito", f"Recibo guardado en {nombre_archivo}")

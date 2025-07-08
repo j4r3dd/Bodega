@@ -249,8 +249,8 @@ class ClientManagerApp:
         tk.Label(group_frame, text="Grupo:", width=15, anchor="w").pack(side="left")
         
         # Combobox for groups
-        group_values = [(g['id_grupo'], g['clave_grupo']) for g in self.groups]
-        group_names = [g[1] for g in group_values]
+        group_values = [(g['id_grupo'], g['clave_grupo'], g['descuento']) for g in self.groups]
+        group_names = [f"{g[1]} ({g[2]}%)" for g in group_values]  # Now includes discount in name
         group_names.insert(0, "--- Sin grupo ---")
         
         group_var = tk.StringVar()
@@ -409,8 +409,8 @@ class ClientManagerApp:
         tk.Label(group_frame, text="Grupo:", width=15, anchor="w").pack(side="left")
         
         # Combobox for groups
-        group_values = [(g['id_grupo'], g['clave_grupo']) for g in self.groups]
-        group_names = [g[1] for g in group_values]
+        group_values = [(g['id_grupo'], g['clave_grupo'], g['descuento']) for g in self.groups]
+        group_names = [f"{g[1]} ({g[2]}%)" for g in group_values]  # Now includes discount in name
         group_names.insert(0, "--- Sin grupo ---")
         
         group_var = tk.StringVar()
